@@ -1,10 +1,19 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
   const [openGenres, setOpenGenres] = useState(false);
   const [openSearch, setOpenSearch] = useState(false);
+
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login", { replace: true });
+  };
 
   const menuItems = [
     "Home",
@@ -19,21 +28,25 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="flex items-center justify-between px-6 py-4 bg-black text-white shadow-md relative z-50">
+      <nav className="flex items-center justify-between bg-black text-white px-4 py-4 shadow-md">
 
-        {/* LOGO + MENU */}
-        <div className="flex items-center gap-10">
+        {/* LEFT SIDE */}
+        <div className="flex items-center gap-8">
 
-          <div className="text-2xl font-bold text-red-500 tracking-wide">
+          {/* LOGO */}
+          <div className="text-2xl font-bold text-red-500">
             CinePlay
           </div>
 
           {/* DESKTOP MENU */}
-          <ul className="hidden md:flex gap-8 text-sm items-center">
+          <ul className="hidden md:flex gap-6 text-sm items-center">
+
             {menuItems.map((item) => {
+
               if (item === "Genres") {
                 return (
                   <li key={item} className="relative">
+
                     <button
                       onClick={() => setOpenGenres(!openGenres)}
                       className="hover:text-red-500 transition"
@@ -42,17 +55,18 @@ const Navbar = () => {
                     </button>
 
                     {openGenres && (
-                      <ul className="absolute top-8 left-0 bg-[#111] border border-gray-800 rounded-md w-40 py-2 shadow-lg">
+                      <ul className="absolute top-8 left-0 bg-[#111] border border-gray-800 rounded-md w-40 py-2 z-50">
                         {genres.map((g) => (
                           <li
                             key={g}
-                            className="px-4 py-2 text-sm hover:bg-red-600 hover:text-white cursor-pointer transition"
+                            className="px-4 py-2 text-sm hover:bg-red-600 cursor-pointer"
                           >
                             {g}
                           </li>
                         ))}
                       </ul>
                     )}
+
                   </li>
                 );
               }
@@ -66,16 +80,17 @@ const Navbar = () => {
                 </li>
               );
             })}
+
           </ul>
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
 
           {/* SEARCH ICON */}
           <button
             onClick={() => setOpenSearch(!openSearch)}
-            className="hover:text-red-500 transition"
+            className="hover:text-red-500"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -98,39 +113,42 @@ const Navbar = () => {
             <input
               type="text"
               placeholder="Search movies..."
-              className="px-3 py-1 text-sm bg-[#111] border border-gray-700 rounded-md outline-none focus:border-red-500 transition"
+              className="px-2 py-1 text-sm bg-[#111] border border-gray-700 rounded-md outline-none"
             />
           )}
 
-          {/* LOGIN */}
-          <Link to="/login" className="hidden md:block text-sm hover:text-red-500 transition">
-           Login
-          </Link>
+          {/* AUTH */}
+          {!token ? (
+            <>
+              <Link
+                to="/login"
+                className="hidden md:block text-sm hover:text-red-500"
+              >
+                Login
+              </Link>
 
-          {/* REGISTER */}
-          <Link to="/register" className="hidden md:block text-sm bg-red-600 px-4 py-1.5 rounded-md hover:bg-red-700 transition">
-           Register
-          </Link>
+              <Link
+                to="/register"
+                className="hidden md:block text-sm bg-red-600 px-3 py-1 rounded"
+              >
+                Register
+              </Link>
+            </>
+          ) : (
+            <button
+              onClick={logout}
+              className="text-sm bg-red-600 px-3 py-1 rounded hover:bg-red-700"
+            >
+              Logout
+            </button>
+          )}
 
-          {/* HAMBURGER */}
+          {/* HAMBURGER MOBILE */}
           <button
             onClick={() => setOpenMenu(true)}
-            className="md:hidden"
+            className="md:hidden text-2xl"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            ☰
           </button>
 
         </div>
@@ -144,7 +162,7 @@ const Navbar = () => {
         />
       )}
 
-      {/* SIDEBAR */}
+      {/* MOBILE MENU */}
       <div
         className={`fixed top-0 right-0 h-full w-72 bg-[#111] text-white z-50 transform transition-transform duration-300 ${
           openMenu ? "translate-x-0" : "translate-x-full"
@@ -152,36 +170,53 @@ const Navbar = () => {
       >
         {/* CLOSE */}
         <div className="flex justify-end p-4">
-          <button
-            onClick={() => setOpenMenu(false)}
-            className="hover:text-red-500"
-          >
-            ✕
-          </button>
+          <button onClick={() => setOpenMenu(false)}>✕</button>
         </div>
 
         {/* MENU */}
         <div className="flex flex-col gap-6 px-6 mt-6 text-lg">
+
           {menuItems.map((item) => (
             <a
               key={item}
               href="#"
               onClick={() => setOpenMenu(false)}
-              className="hover:text-red-500 transition"
+              className="hover:text-red-500"
             >
               {item}
             </a>
           ))}
+
         </div>
 
-        {/* AUTH */}
+        {/* AUTH MOBILE */}
         <div className="mt-10 px-6 flex flex-col gap-4">
-          <button className="bg-white text-black py-2 rounded-md font-medium hover:bg-gray-200 transition">
-            Login
-          </button>
-          <button className="border border-gray-500 py-2 rounded-md font-medium hover:border-red-500 transition">
-            Register
-          </button>
+
+          {!token ? (
+            <>
+              <Link
+                to="/login"
+                className="bg-white text-black py-2 text-center rounded"
+              >
+                Login
+              </Link>
+
+              <Link
+                to="/register"
+                className="border border-gray-500 py-2 text-center rounded"
+              >
+                Register
+              </Link>
+            </>
+          ) : (
+            <button
+              onClick={logout}
+              className="bg-red-600 py-2 rounded"
+            >
+              Logout
+            </button>
+          )}
+
         </div>
       </div>
     </>

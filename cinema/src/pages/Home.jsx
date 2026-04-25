@@ -35,7 +35,7 @@ const getMonthName = (dateStr) => {
   return date.toLocaleString("en-US", { month: "long" });
 };
 
-const App = () => {
+const Home = () => {
   const [openMonths, setOpenMonths] = useState(false);
   const [index, setIndex] = useState(0);
   const [filter, setFilter] = useState("top");
@@ -332,4 +332,4 @@ const App = () => {
   );
 };
 
-export default App; 
+export default Home;
