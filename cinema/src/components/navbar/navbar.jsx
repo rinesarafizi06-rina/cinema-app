@@ -28,9 +28,10 @@ const Navbar = () => {
 
   return (
     <>
+      {/* NAVBAR */}
       <nav className="flex items-center justify-between bg-black text-white px-4 py-4 shadow-md">
 
-        {/* LEFT SIDE */}
+        {/* LEFT */}
         <div className="flex items-center gap-8">
 
           {/* LOGO */}
@@ -56,14 +57,19 @@ const Navbar = () => {
 
                     {openGenres && (
                       <ul className="absolute top-8 left-0 bg-[#111] border border-gray-800 rounded-md w-40 py-2 z-50">
+
                         {genres.map((g) => (
-                          <li
-                            key={g}
-                            className="px-4 py-2 text-sm hover:bg-red-600 cursor-pointer"
-                          >
-                            {g}
+                          <li key={g}>
+                            <Link
+                              to={`/genres/${g.toLowerCase()}`}
+                              className="block px-4 py-2 text-sm hover:bg-red-600"
+                              onClick={() => setOpenGenres(false)}
+                            >
+                              {g}
+                            </Link>
                           </li>
                         ))}
+
                       </ul>
                     )}
 
@@ -72,50 +78,63 @@ const Navbar = () => {
               }
 
               return (
-                <li
-                  key={item}
-                  className="hover:text-red-500 cursor-pointer transition"
-                >
-                  {item}
-                </li>
+  <li key={item} className="hover:text-red-500 transition">
+
+    <Link
+      to={
+        item === "Home"
+          ? "/"
+          : item === "Reservations"
+          ? "/reservation"
+          : `/${item.toLowerCase()}`
+      }
+    >
+      {item}
+    </Link>
+
+  </li>
+
               );
             })}
 
           </ul>
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* RIGHT */}
         <div className="flex items-center gap-4">
 
-          {/* SEARCH ICON */}
-          <button
-            onClick={() => setOpenSearch(!openSearch)}
-            className="hover:text-red-500"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </button>
+          {/* SEARCH */}
+          <div className="flex items-center">
 
-          {/* SEARCH INPUT */}
-          {openSearch && (
-            <input
-              type="text"
-              placeholder="Search movies..."
-              className="px-2 py-1 text-sm bg-[#111] border border-gray-700 rounded-md outline-none"
-            />
-          )}
+            <button
+              onClick={() => setOpenSearch(!openSearch)}
+              className="hover:text-red-500 transition"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+
+            {openSearch && (
+              <input
+                type="text"
+                placeholder="Search movies..."
+                className="ml-2 px-3 py-1 text-sm bg-[#111] border border-gray-700 rounded-md outline-none text-white"
+              />
+            )}
+
+          </div>
 
           {/* AUTH */}
           {!token ? (
@@ -143,7 +162,7 @@ const Navbar = () => {
             </button>
           )}
 
-          {/* HAMBURGER MOBILE */}
+          {/* MOBILE MENU */}
           <button
             onClick={() => setOpenMenu(true)}
             className="md:hidden text-2xl"
@@ -162,34 +181,39 @@ const Navbar = () => {
         />
       )}
 
-      {/* MOBILE MENU */}
+      {/* MOBILE SIDEBAR */}
       <div
         className={`fixed top-0 right-0 h-full w-72 bg-[#111] text-white z-50 transform transition-transform duration-300 ${
           openMenu ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* CLOSE */}
+
         <div className="flex justify-end p-4">
           <button onClick={() => setOpenMenu(false)}>✕</button>
         </div>
 
-        {/* MENU */}
         <div className="flex flex-col gap-6 px-6 mt-6 text-lg">
 
           {menuItems.map((item) => (
-            <a
+            <Link
               key={item}
-              href="#"
+             to={
+  item === "Home"
+    ? "/"
+    : item === "Reservations"
+    ? "/reservation"
+    : `/${item.toLowerCase()}`
+}
               onClick={() => setOpenMenu(false)}
               className="hover:text-red-500"
             >
               {item}
-            </a>
+            </Link>
           ))}
 
         </div>
 
-        {/* AUTH MOBILE */}
+        {/* MOBILE AUTH */}
         <div className="mt-10 px-6 flex flex-col gap-4">
 
           {!token ? (
@@ -218,6 +242,7 @@ const Navbar = () => {
           )}
 
         </div>
+
       </div>
     </>
   );
