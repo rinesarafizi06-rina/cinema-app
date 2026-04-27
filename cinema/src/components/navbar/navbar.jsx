@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
@@ -6,14 +6,55 @@ const Navbar = () => {
   const [openGenres, setOpenGenres] = useState(false);
   const [openSearch, setOpenSearch] = useState(false);
 
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+
+  const searchRef = useRef(null);
   const navigate = useNavigate();
+
   const token = localStorage.getItem("token");
+
+  const genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance"];
+
+  const handleSearch = async (value) => {
+    setQuery(value);
+
+    if (!value.trim()) {
+      setResults([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/movies/search?q=${value}`
+      );
+
+      const data = await res.json();
+      setResults(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login", { replace: true });
   };
+
+  // click outside search
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setResults([]);
+        setOpenSearch(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const menuItems = [
     "Home",
@@ -24,8 +65,6 @@ const Navbar = () => {
     "About Us",
   ];
 
-  const genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance"];
-
   return (
     <>
       {/* NAVBAR */}
@@ -34,7 +73,6 @@ const Navbar = () => {
         {/* LEFT */}
         <div className="flex items-center gap-8">
 
-          {/* LOGO */}
           <div className="text-2xl font-bold text-red-500">
             CinePlay
           </div>
@@ -50,7 +88,7 @@ const Navbar = () => {
 
                     <button
                       onClick={() => setOpenGenres(!openGenres)}
-                      className="hover:text-red-500 transition"
+                      className="hover:text-red-500"
                     >
                       Genres
                     </button>
@@ -62,7 +100,7 @@ const Navbar = () => {
                           <li key={g}>
                             <Link
                               to={`/genres/${g.toLowerCase()}`}
-                              className="block px-4 py-2 text-sm hover:bg-red-600"
+                              className="block px-4 py-2 hover:bg-red-600"
                               onClick={() => setOpenGenres(false)}
                             >
                               {g}
@@ -78,22 +116,21 @@ const Navbar = () => {
               }
 
               return (
-  <li key={item} className="hover:text-red-500 transition">
+                <li key={item} className="hover:text-red-500">
 
-    <Link
-      to={
-        item === "Home"
-          ? "/"
-          : item === "Reservations"
-          ? "/reservation"
-          : `/${item.toLowerCase()}`
-      }
-    >
-      {item}
-    </Link>
+                  <Link
+                    to={
+                      item === "Home"
+                        ? "/"
+                        : item === "Reservations"
+                        ? "/reservation"
+                        : `/${item.toLowerCase()}`
+                    }
+                  >
+                    {item}
+                  </Link>
 
-  </li>
-
+                </li>
               );
             })}
 
@@ -104,11 +141,11 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
 
           {/* SEARCH */}
-          <div className="flex items-center">
+          <div ref={searchRef} className="relative flex items-center">
 
             <button
               onClick={() => setOpenSearch(!openSearch)}
-              className="hover:text-red-500 transition"
+              className="hover:text-red-500"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -130,8 +167,39 @@ const Navbar = () => {
               <input
                 type="text"
                 placeholder="Search movies..."
-                className="ml-2 px-3 py-1 text-sm bg-[#111] border border-gray-700 rounded-md outline-none text-white"
+                value={query}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="ml-2 px-3 py-1 text-sm bg-[#111] border border-gray-700 rounded-md text-white outline-none"
               />
+            )}
+
+            {results.length > 0 && (
+              <div className="absolute top-10 left-0 w-64 bg-[#111] border border-gray-800 rounded-md z-50 shadow-lg">
+
+                {results.map((movie) => (
+                  <Link
+                    key={movie._id}
+                    to={`/movie/${movie._id}`}
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-red-600"
+                    onClick={() => {
+                      setResults([]);
+                      setQuery("");
+                      setOpenSearch(false);
+                    }}
+                  >
+                    <img
+                      src={
+                        movie.poster_path
+                          ? `https://image.tmdb.org/t/p/w92${movie.poster_path}`
+                          : "https://dummyimage.com/40x60"
+                      }
+                      className="w-8 h-12 object-cover rounded"
+                    />
+                    <span className="text-sm">{movie.title}</span>
+                  </Link>
+                ))}
+
+              </div>
             )}
 
           </div>
@@ -139,16 +207,13 @@ const Navbar = () => {
           {/* AUTH */}
           {!token ? (
             <>
-              <Link
-                to="/login"
-                className="hidden md:block text-sm hover:text-red-500"
-              >
+              <Link to="/login" className="hidden md:block hover:text-red-500">
                 Login
               </Link>
 
               <Link
                 to="/register"
-                className="hidden md:block text-sm bg-red-600 px-3 py-1 rounded"
+                className="hidden md:block bg-red-600 px-3 py-1 rounded"
               >
                 Register
               </Link>
@@ -156,13 +221,13 @@ const Navbar = () => {
           ) : (
             <button
               onClick={logout}
-              className="text-sm bg-red-600 px-3 py-1 rounded hover:bg-red-700"
+              className="bg-red-600 px-3 py-1 rounded"
             >
               Logout
             </button>
           )}
 
-          {/* MOBILE MENU */}
+          {/* MOBILE MENU BUTTON */}
           <button
             onClick={() => setOpenMenu(true)}
             className="md:hidden text-2xl"
@@ -197,13 +262,13 @@ const Navbar = () => {
           {menuItems.map((item) => (
             <Link
               key={item}
-             to={
-  item === "Home"
-    ? "/"
-    : item === "Reservations"
-    ? "/reservation"
-    : `/${item.toLowerCase()}`
-}
+              to={
+                item === "Home"
+                  ? "/"
+                  : item === "Reservations"
+                  ? "/reservation"
+                  : `/${item.toLowerCase()}`
+              }
               onClick={() => setOpenMenu(false)}
               className="hover:text-red-500"
             >
