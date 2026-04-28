@@ -14,17 +14,22 @@ const GenrePage = () => {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(
-          `http://localhost:5000/api/movies?genre=${genre}`
-        );
+        const res = await fetch("http://localhost:5000/api/movies");
 
         if (!res.ok) {
           throw new Error("Failed to fetch movies");
         }
 
         const data = await res.json();
-        setMovies(data);
 
+        // ✅ FILTER BY GENRE (frontend)
+        const filtered = data.filter(
+          (movie) =>
+            movie.genre &&
+            movie.genre.toLowerCase() === genre.toLowerCase()
+        );
+
+        setMovies(filtered);
       } catch (err) {
         console.log(err);
         setError("Something went wrong while fetching movies");
@@ -36,14 +41,16 @@ const GenrePage = () => {
     if (genre) fetchMovies();
   }, [genre]);
 
+  // LOADING
   if (loading) {
     return (
       <div className="bg-black text-white min-h-screen flex items-center justify-center">
-        Loading...
+        Loading movies...
       </div>
     );
   }
 
+  // ERROR
   if (error) {
     return (
       <div className="bg-black text-red-500 min-h-screen flex items-center justify-center">
@@ -65,8 +72,7 @@ const GenrePage = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5">
 
           {movies.map((movie) => (
-            
-            <div key={movie._id} className="group">
+            <div key={movie.id || movie._id} className="group">
 
               <img
                 src={
@@ -75,7 +81,7 @@ const GenrePage = () => {
                     : "https://dummyimage.com/300x450/111/fff&text=No+Image"
                 }
                 alt={movie.title}
-                className="w-full h-72 object-cover rounded-lg"
+                className="w-full h-72 object-cover rounded-lg group-hover:scale-105 transition"
                 onError={(e) => {
                   e.target.src =
                     "https://dummyimage.com/300x450/111/fff&text=No+Image";
@@ -91,7 +97,6 @@ const GenrePage = () => {
 
         </div>
       )}
-
     </div>
   );
 };

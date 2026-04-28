@@ -1,9 +1,16 @@
-const mongoose = require("mongoose");
+const db = require("../config/db");
 
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  password: String,
-});
+const createUser = (name, email, password, role, callback) => {
+  const sql = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
+  db.query(sql, [name, email, password, role], callback);
+};
 
-module.exports = mongoose.model("User", userSchema);
+const getUserByEmail = (email, callback) => {
+  const sql = "SELECT * FROM users WHERE email = ?";
+  db.query(sql, [email], callback);
+};
+
+module.exports = {
+  createUser,
+  getUserByEmail,
+};

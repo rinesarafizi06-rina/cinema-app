@@ -1,14 +1,10 @@
-const mongoose = require("mongoose");
+const mysql = require("mysql2");
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "cinema_app"
+});
 
-    console.log("✅ MongoDB connected");
-  } catch (error) {
-    console.error("❌ DB error:", error.message);
-    process.exit(1);
-  }
-};
-
-module.exports = connectDB;
+module.exports = db;

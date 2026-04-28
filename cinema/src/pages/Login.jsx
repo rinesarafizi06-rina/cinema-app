@@ -12,29 +12,32 @@ const Login = () => {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password
+        })
       });
 
       const data = await res.json();
+      console.log("LOGIN:", data);
 
       if (!res.ok) {
-        alert(data.msg);
+        alert(data.msg || "Server error");
         return;
       }
 
-      // 🔥 SAVE TOKEN
+      // 🔐 RUJ TOKEN
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       alert("Login successful!");
 
-      // 🚀 REDIRECT TO HOMEPAGE
-      navigate("/", { replace: true });
+      navigate("/");
 
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log("LOGIN ERROR:", error);
       alert("Server error");
     }
   };
@@ -63,7 +66,7 @@ const Login = () => {
 
         <button
           onClick={handleLogin}
-          className="w-full bg-red-600 py-2 rounded hover:bg-red-700"
+          className="w-full bg-red-600 py-2 rounded"
         >
           Login
         </button>
