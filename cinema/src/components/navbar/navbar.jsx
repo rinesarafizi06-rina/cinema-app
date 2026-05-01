@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import SearchDropdown from "../SearchDropdown";
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
@@ -16,6 +17,7 @@ const Navbar = () => {
 
   const genres = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance"];
 
+  // 🔥 SEARCH FIXED
   const handleSearch = async (value) => {
     setQuery(value);
 
@@ -26,13 +28,15 @@ const Navbar = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/movies/search?q=${value}`
+        `http://localhost:5000/api/movies/search?q=${encodeURIComponent(value)}`
       );
 
       const data = await res.json();
-      setResults(data);
+
+      setResults(Array.isArray(data) ? data : []);
     } catch (err) {
       console.log(err);
+      setResults([]);
     }
   };
 
@@ -66,250 +70,138 @@ const Navbar = () => {
   ];
 
   return (
-    <>
-      {/* NAVBAR */}
-      <nav className="flex items-center justify-between bg-black text-white px-4 py-4 shadow-md">
+    <nav className="flex items-center justify-between bg-black text-white px-4 py-4 shadow-md">
 
-        {/* LEFT */}
-        <div className="flex items-center gap-8">
+      {/* LEFT */}
+      <div className="flex items-center gap-8">
+        <div className="text-2xl font-bold text-red-500">
+          CinePlay
+        </div>
 
-          <div className="text-2xl font-bold text-red-500">
-            CinePlay
-          </div>
-
-          {/* DESKTOP MENU */}
-          <ul className="hidden md:flex gap-6 text-sm items-center">
-
-            {menuItems.map((item) => {
-
-              if (item === "Genres") {
-                return (
-                  <li key={item} className="relative">
-
-                    <button
-                      onClick={() => setOpenGenres(!openGenres)}
-                      className="hover:text-red-500"
-                    >
-                      Genres
-                    </button>
-
-                    {openGenres && (
-                      <ul className="absolute top-8 left-0 bg-[#111] border border-gray-800 rounded-md w-40 py-2 z-50">
-
-                        {genres.map((g) => (
-                          <li key={g}>
-                            <Link
-                              to={`/genres/${g.toLowerCase()}`}
-                              className="block px-4 py-2 hover:bg-red-600"
-                              onClick={() => setOpenGenres(false)}
-                            >
-                              {g}
-                            </Link>
-                          </li>
-                        ))}
-
-                      </ul>
-                    )}
-
-                  </li>
-                );
-              }
-
+        <ul className="hidden md:flex gap-6 text-sm items-center">
+          {menuItems.map((item) => {
+            if (item === "Genres") {
               return (
-                <li key={item} className="hover:text-red-500">
-
-                  <Link
-                    to={
-                      item === "Home"
-                        ? "/"
-                        : item === "Reservations"
-                        ? "/reservation"
-                        : `/${item.toLowerCase()}`
-                    }
+                <li key={item} className="relative">
+                  <button
+                    onClick={() => setOpenGenres(!openGenres)}
+                    className="hover:text-red-500"
                   >
-                    {item}
-                  </Link>
+                    Genres
+                  </button>
 
+                  {openGenres && (
+                    <ul className="absolute top-8 left-0 bg-[#111] border border-gray-800 rounded-md w-40 py-2 z-50">
+                      {genres.map((g) => (
+                        <li key={g}>
+                          <Link
+                            to={`/genres/${g}`}
+                            className="block px-4 py-2 hover:bg-red-600"
+                            onClick={() => setOpenGenres(false)}
+                          >
+                            {g}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               );
-            })}
+            }
 
-          </ul>
-        </div>
+            return (
+              <li key={item} className="hover:text-red-500">
+                <Link
+                  to={
+                    item === "Home"
+                      ? "/"
+                      : item === "Reservations"
+                      ? "/reservation"
+                      : `/${item.toLowerCase()}`
+                  }
+                >
+                  {item}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
 
-        {/* RIGHT */}
-        <div className="flex items-center gap-4">
+      {/* RIGHT */}
+      <div className="flex items-center gap-4">
 
-          {/* SEARCH */}
-          <div ref={searchRef} className="relative flex items-center">
+        {/* SEARCH */}
+        <div ref={searchRef} className="relative flex items-center">
 
-            <button
-              onClick={() => setOpenSearch(!openSearch)}
-              className="hover:text-red-500"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </button>
-
-            {openSearch && (
-              <input
-                type="text"
-                placeholder="Search movies..."
-                value={query}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="ml-2 px-3 py-1 text-sm bg-[#111] border border-gray-700 rounded-md text-white outline-none"
-              />
-            )}
-
-            {results.length > 0 && (
-              <div className="absolute top-10 left-0 w-64 bg-[#111] border border-gray-800 rounded-md z-50 shadow-lg">
-
-                {results.map((movie) => (
-                  <Link
-                    key={movie._id}
-                    to={`/movie/${movie._id}`}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-red-600"
-                    onClick={() => {
-                      setResults([]);
-                      setQuery("");
-                      setOpenSearch(false);
-                    }}
-                  >
-                    <img
-                      src={
-                        movie.poster_path
-                          ? `https://image.tmdb.org/t/p/w92${movie.poster_path}`
-                          : "https://dummyimage.com/40x60"
-                      }
-                      className="w-8 h-12 object-cover rounded"
-                    />
-                    <span className="text-sm">{movie.title}</span>
-                  </Link>
-                ))}
-
-              </div>
-            )}
-
-          </div>
-
-          {/* AUTH */}
-          {!token ? (
-            <>
-              <Link to="/login" className="hidden md:block hover:text-red-500">
-                Login
-              </Link>
-
-              <Link
-                to="/register"
-                className="hidden md:block bg-red-600 px-3 py-1 rounded"
-              >
-                Register
-              </Link>
-            </>
-          ) : (
-            <button
-              onClick={logout}
-              className="bg-red-600 px-3 py-1 rounded"
-            >
-              Logout
-            </button>
-          )}
-
-          {/* MOBILE MENU BUTTON */}
+          {/* 🔥 REAL SVG ICON */}
           <button
-            onClick={() => setOpenMenu(true)}
-            className="md:hidden text-2xl"
+            onClick={() => setOpenSearch(!openSearch)}
+            className="hover:text-red-500"
           >
-            ☰
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
           </button>
 
-        </div>
-      </nav>
+          {openSearch && (
+            <input
+              type="text"
+              placeholder="Search movies..."
+              value={query}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="ml-2 px-3 py-1 text-sm bg-[#111] border border-gray-700 rounded-md text-white outline-none"
+            />
+          )}
 
-      {/* OVERLAY */}
-      {openMenu && (
-        <div
-          onClick={() => setOpenMenu(false)}
-          className="fixed inset-0 bg-black/60 z-40"
-        />
-      )}
-
-      {/* MOBILE SIDEBAR */}
-      <div
-        className={`fixed top-0 right-0 h-full w-72 bg-[#111] text-white z-50 transform transition-transform duration-300 ${
-          openMenu ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-
-        <div className="flex justify-end p-4">
-          <button onClick={() => setOpenMenu(false)}>✕</button>
-        </div>
-
-        <div className="flex flex-col gap-6 px-6 mt-6 text-lg">
-
-          {menuItems.map((item) => (
-            <Link
-              key={item}
-              to={
-                item === "Home"
-                  ? "/"
-                  : item === "Reservations"
-                  ? "/reservation"
-                  : `/${item.toLowerCase()}`
-              }
-              onClick={() => setOpenMenu(false)}
-              className="hover:text-red-500"
-            >
-              {item}
-            </Link>
-          ))}
-
-        </div>
-
-        {/* MOBILE AUTH */}
-        <div className="mt-10 px-6 flex flex-col gap-4">
-
-          {!token ? (
-            <>
-              <Link
-                to="/login"
-                className="bg-white text-black py-2 text-center rounded"
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/register"
-                className="border border-gray-500 py-2 text-center rounded"
-              >
-                Register
-              </Link>
-            </>
-          ) : (
-            <button
-              onClick={logout}
-              className="bg-red-600 py-2 rounded"
-            >
-              Logout
-            </button>
+          {/* SEARCH DROPDOWN */}
+          {query.trim() !== "" && (
+            <SearchDropdown
+              results={results}
+              setResults={setResults}
+              setQuery={setQuery}
+              setOpenSearch={setOpenSearch}
+            />
           )}
 
         </div>
 
+        {/* AUTH */}
+        {!token ? (
+          <>
+            <Link to="/login" className="hidden md:block hover:text-red-500">
+              Login
+            </Link>
+
+            <Link
+              to="/register"
+              className="hidden md:block bg-red-600 px-3 py-1 rounded"
+            >
+              Register
+            </Link>
+          </>
+        ) : (
+          <button
+            onClick={logout}
+            className="bg-red-600 px-3 py-1 rounded"
+          >
+            Logout
+          </button>
+        )}
       </div>
-    </>
+
+    </nav>
   );
 };
 

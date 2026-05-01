@@ -28,7 +28,7 @@ const Login = () => {
         return;
       }
 
-      // 🔐 RUJ TOKEN
+      // TOKEN
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 

@@ -1,69 +1,66 @@
-const router = require("express").Router();
-const db = require("../db");
+const express = require("express");
+const router = express.Router();
+const { pool } = require("../config/db");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+
+// TEST
+router.get("/test", (req, res) => {
+  res.send("Auth working with PostgreSQL");
+});
 
 // REGISTER
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ msg: "Ploteso krejt fushat" });
-  }
-
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, 10);
 
-    const sql = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
-    db.query(sql, [name, email, hashedPassword], (err, result) => {
-      if (err) {
-        return res.status(500).json({ msg: "Error register", err });
-      }
+    await pool.query(
+      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
+      [name, email, hashed]
+    );
 
-      return res.json({ msg: "Register success", success: true });
-    });
+    res.json({ msg: "User registered successfully" });
+
   } catch (err) {
-    res.status(500).json({ msg: "Server error" });
+    res.status(500).json({ msg: err.message });
   }
 });
 
 // LOGIN
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const sql = "SELECT * FROM users WHERE email = ?";
-  db.query(sql, [email], async (err, results) => {
-    if (err) return res.status(500).json({ msg: "Error" });
+  try {
+    const result = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
 
-    if (results.length === 0) {
-      return res.status(400).json({ msg: "User nuk ekziston" });
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(400).json({ msg: "User not found" });
     }
-
-    const user = results[0];
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json({ msg: "Password gabim" });
+      return res.status(400).json({ msg: "Wrong password" });
     }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      "secretkey123",
-      { expiresIn: "1d" }
-    );
-
-    return res.json({
+    res.json({
       msg: "Login success",
-      token,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+      },
     });
-  });
+
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
 });
 
 module.exports = router;
