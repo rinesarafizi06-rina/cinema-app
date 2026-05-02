@@ -1,16 +1,25 @@
-const db = require("../config/db");
+const { pool } = require("../config/db");
 
-const createUser = (name, email, password, role, callback) => {
-  const sql = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
-  db.query(sql, [name, email, password, role], callback);
+// CREATE USER
+const createUser = async (name, email, password, role = "user") => {
+  const result = await pool.query(
+    `INSERT INTO users (name, email, password, role)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [name, email, password, role]
+  );
+
+  return result.rows[0];
 };
 
-const getUserByEmail = (email, callback) => {
-  const sql = "SELECT * FROM users WHERE email = ?";
-  db.query(sql, [email], callback);
+// GET USER BY EMAIL
+const getUserByEmail = async (email) => {
+  const result = await pool.query(
+    "SELECT * FROM users WHERE email = $1",
+    [email]
+  );
+
+  return result.rows[0];
 };
 
-module.exports = {
-  createUser,
-  getUserByEmail,
-};
+module.exports = { createUser, getUserByEmail };

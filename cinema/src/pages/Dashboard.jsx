@@ -4,30 +4,37 @@ import { useNavigate } from "react-router-dom";
 const Dashboard = () => {
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
+  const logout = () => {
+    localStorage.clear();
     navigate("/login");
   };
 
+  // ROLE CHECK
+  if (user.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <h1>Access denied ❌ Admin only</h1>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <div className="bg-[#111] p-8 rounded-lg shadow-lg text-center w-80">
-        
-        <h1 className="text-2xl font-bold mb-4">
-          Welcome {user?.username || "User"} 👋
+      <div className="bg-[#111] p-8 rounded w-80 text-center">
+
+        <h1 className="text-xl mb-2">
+          Welcome {user.name} 👑
         </h1>
 
-        <p className="mb-6 text-gray-400">
-          You are logged in successfully
+        <p className="text-gray-400 mb-4">
+          Role: {user.role}
         </p>
 
         <button
-          onClick={handleLogout}
-          className="w-full bg-red-600 py-2 rounded-md hover:bg-red-700"
+          onClick={logout}
+          className="w-full bg-red-600 py-2"
         >
           Logout
         </button>

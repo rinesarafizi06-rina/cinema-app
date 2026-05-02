@@ -2,35 +2,34 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const [name, setName] = useState("");   
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleRegister = async () => {
+    if (!name || !email || !password) {
+      return alert("Please fill all fields");
+    }
+
     try {
+      setLoading(true);
+
       const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name,      
-          email,
-          password
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
-      console.log("REGISTER:", data);
 
       if (!res.ok) {
-        alert(data.msg || "Server error");
-        return;
+        return alert(data.msg || "Register failed");
       }
 
-      alert("Registered successfully!");
+      alert("Registered successfully");
 
       setName("");
       setEmail("");
@@ -38,9 +37,11 @@ const Register = () => {
 
       navigate("/login");
 
-    } catch (error) {
-      console.log("REGISTER ERROR:", error);
+    } catch (err) {
+      console.log(err);
       alert("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,34 +52,33 @@ const Register = () => {
         <h2 className="text-xl mb-4 text-center">Register</h2>
 
         <input
-          type="text"
+          className="w-full p-2 mb-3 bg-black border border-gray-700"
           placeholder="Name"
-          className="w-full mb-3 p-2 bg-black border border-gray-700"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
         <input
-          type="email"
+          className="w-full p-2 mb-3 bg-black border border-gray-700"
           placeholder="Email"
-          className="w-full mb-3 p-2 bg-black border border-gray-700"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
+          className="w-full p-2 mb-4 bg-black border border-gray-700"
           type="password"
           placeholder="Password"
-          className="w-full mb-4 p-2 bg-black border border-gray-700"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         <button
           onClick={handleRegister}
-          className="w-full bg-red-600 py-2 rounded"
+          disabled={loading}
+          className="w-full bg-red-600 py-2"
         >
-          Register
+          {loading ? "Loading..." : "Register"}
         </button>
 
       </div>

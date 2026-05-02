@@ -4,41 +4,43 @@ import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      return alert("Please fill all fields");
+    }
+
     try {
+      setLoading(true);
+
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          email,
-          password
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
-      console.log("LOGIN:", data);
 
       if (!res.ok) {
-        alert(data.msg || "Server error");
-        return;
+        return alert(data.msg || "Login failed");
       }
 
-      // TOKEN
+      // save auth
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      alert("Login successful!");
+      alert("Login successful");
 
       navigate("/");
 
-    } catch (error) {
-      console.log("LOGIN ERROR:", error);
+    } catch (err) {
+      console.log(err);
       alert("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,26 +51,26 @@ const Login = () => {
         <h2 className="text-xl mb-4 text-center">Login</h2>
 
         <input
-          type="email"
+          className="w-full p-2 mb-3 bg-black border border-gray-700"
           placeholder="Email"
-          className="w-full mb-3 p-2 bg-black border border-gray-700"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
+          className="w-full p-2 mb-4 bg-black border border-gray-700"
           type="password"
           placeholder="Password"
-          className="w-full mb-4 p-2 bg-black border border-gray-700"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         <button
           onClick={handleLogin}
-          className="w-full bg-red-600 py-2 rounded"
+          disabled={loading}
+          className="w-full bg-red-600 py-2"
         >
-          Login
+          {loading ? "Loading..." : "Login"}
         </button>
 
       </div>
